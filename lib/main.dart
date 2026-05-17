@@ -352,12 +352,14 @@ class _TajiAppState extends State<TajiApp> {
   bool _checkedUpdate = false;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_checkedUpdate) {
-      _checkedUpdate = true;
-      _checkForUpdate();
-    }
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_checkedUpdate) {
+        _checkedUpdate = true;
+        _checkForUpdate();
+      }
+    });
   }
 
   Future<void> _checkForUpdate() async {
