@@ -24,7 +24,7 @@ class UpdateService {
       final version = tagName.replaceAll(RegExp(r'^v'), '');
       if (version.isEmpty) return null;
 
-      if (_compareVersions(version, currentVersion) <= 0) return null;
+      if (compareVersions(version, currentVersion) <= 0) return null;
 
       final assets = data['assets'] as List<dynamic>? ?? [];
       if (assets.isEmpty) return null;
@@ -45,7 +45,8 @@ class UpdateService {
     }
   }
 
-  static int _compareVersions(String a, String b) {
+  @visibleForTesting
+  static int compareVersions(String a, String b) {
     final partsA = a.split('.').map((e) => int.tryParse(e) ?? 0).toList();
     final partsB = b.split('.').map((e) => int.tryParse(e) ?? 0).toList();
     for (int i = 0; i < partsA.length && i < partsB.length; i++) {

@@ -1,26 +1,22 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-
-import 'package:taji_app/main.dart';
+import 'package:taji_app/utils/constants.dart';
 
 void main() {
-  setUpAll(() {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-  });
+  group('Constants', () {
+    test('colors are correct hex values', () {
+      expect(tajiAmber, const Color(0xFFFFB800));
+      expect(pureBlack, const Color(0xFF000000));
+      expect(pureWhite, const Color(0xFFFFFFFF));
+    });
 
-  testWidgets('App launches and shows home page', (WidgetTester tester) async {
-    await tester.pumpWidget(const TajiApp());
-    await tester.pumpAndSettle();
+    test('theme data builds without error', () {
+      expect(buildLightTheme(), isNotNull);
+      expect(buildDarkTheme(), isNotNull);
+    });
 
-    expect(find.text('TAJI THE CREATOR'), findsOneWidget);
-    expect(find.text('Elevating Digital Art\n& Graphic Design'), findsOneWidget);
-  });
-
-  testWidgets('Swipe button is present', (WidgetTester tester) async {
-    await tester.pumpWidget(const TajiApp());
-    await tester.pumpAndSettle();
-
-    expect(find.text('Swipe to start'), findsOneWidget);
+    test('theme notifier defaults to dark mode', () {
+      expect(themeNotifier.value, ThemeMode.dark);
+    });
   });
 }

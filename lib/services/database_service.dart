@@ -127,13 +127,11 @@ class DatabaseService {
       )
     ''');
 
-    // Insert default categories
     final defaultCategories = ['Merchant', 'Design', 'Brands', 'Projects'];
     for (final cat in defaultCategories) {
       await db.insert('categories', {'name': cat});
     }
 
-    // Insert default notifications
     await db.insert('notifications', {
       'title': 'Order Shipped!',
       'message': 'Your vintage jacket is on the way. Track your delivery.',
@@ -163,7 +161,6 @@ class DatabaseService {
       'color': 'purple',
     });
 
-    // Insert default products
     final defaultProducts = [
       {"name": "Premium Store Display", "category": "Merchant", "price": r"$299.00", "description": "High-performance store display."},
       {"name": "Branding Kit", "category": "Merchant", "price": r"$150.00", "description": "Complete branding solution."},
@@ -182,7 +179,6 @@ class DatabaseService {
       await db.insert('products', p);
     }
 
-    // Insert default profile data
     final defaultProfile = {
       'name': 'Sarah Jenkins',
       'firstName': 'Levis',
@@ -199,9 +195,7 @@ class DatabaseService {
     }
   }
 
-  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // Handle future migrations
-  }
+  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {}
 
   static Future<void> clearDatabase() async {
     final db = await database;
@@ -450,7 +444,7 @@ class DatabaseService {
     return 0;
   }
 
-  // ── User Settings (Key-Value) ──
+  // ── User Settings ──
   static Future<String?> getSetting(String key) async {
     final db = await database;
     final rows = await db.query('user_settings', where: 'key = ?', whereArgs: [key]);
@@ -475,7 +469,7 @@ class DatabaseService {
     await setSetting(key, value.toString());
   }
 
-  // ── Promo Data (Key-Value) ──
+  // ── Promo Data ──
   static Future<String?> getPromoValue(String key) async {
     final db = await database;
     final rows = await db.query('promo_data', where: 'key = ?', whereArgs: [key]);
@@ -490,7 +484,7 @@ class DatabaseService {
     );
   }
 
-  // ── Profile Data (Key-Value) ──
+  // ── Profile Data ──
   static Future<String?> getProfileValue(String key) async {
     final db = await database;
     final rows = await db.query('profile_data', where: 'key = ?', whereArgs: [key]);
