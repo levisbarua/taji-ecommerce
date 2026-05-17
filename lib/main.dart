@@ -3850,6 +3850,7 @@ class _SettingsPageState extends State<SettingsPage> {
   String selectedLanguage = "English";
   String _phone = "0715773232";
   String _email = "barualevis@gmail.com";
+  bool _checkingUpdate = false;
 
   @override
   void initState() {
@@ -4101,6 +4102,16 @@ class _SettingsPageState extends State<SettingsPage> {
                       : "System (default)",
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const DarkModePage())),
             ),
+            _buildSettingItem(
+              "Check for updates",
+              Icons.system_update_rounded,
+              pureYellow,
+              value: _checkingUpdate ? "Checking..." : null,
+              trailing: _checkingUpdate
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: pureYellow, strokeWidth: 2))
+                  : null,
+              onTap: _checkForUpdateManually,
+            ),
           ]),
           const SizedBox(height: 24),
 
@@ -4126,6 +4137,52 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ]),
           const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _checkForUpdateManually() async {
+    setState(() => _checkingUpdate = true);
+    const currentVersion = '0.1.0';
+    final update = await UpdateService.checkForUpdate(currentVersion);
+    if (!mounted) return;
+    setState(() => _checkingUpdate = false);
+
+    if (update == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You have the latest version'), backgroundColor: Color(0xFF22C55E)),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A202C),
+        title: const Text('Update Available', style: TextStyle(color: pureWhite)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('v${update['version']}', style: const TextStyle(color: pureYellow, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(update['notes'] as String, style: const TextStyle(color: pureWhite)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Later', style: TextStyle(color: tajiTextMutedDark)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              UpdateService.downloadAndInstall(update['url'] as String, context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: pureYellow, foregroundColor: pureBlack),
+            child: const Text('Update Now'),
+          ),
         ],
       ),
     );
