@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/services.dart';
 import 'database_service.dart';
+import 'update_service.dart';
 
 // ── Premium Golden Amber Palette ──
 // Accent
@@ -338,8 +339,63 @@ class OrderManager {
   static Future<void> updateOrderStatus(String orderId, String status) async {
     await DatabaseService.updateOrderStatus(orderId, status);
   }
-}class TajiApp extends StatelessWidget {
+}
+
+class TajiApp extends StatefulWidget {
   const TajiApp({super.key});
+
+  @override
+  State<TajiApp> createState() => _TajiAppState();
+}
+
+class _TajiAppState extends State<TajiApp> {
+  bool _checkedUpdate = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_checkedUpdate) {
+      _checkedUpdate = true;
+      _checkForUpdate();
+    }
+  }
+
+  Future<void> _checkForUpdate() async {
+    const currentVersion = '0.1.0';
+    final update = await UpdateService.checkForUpdate(currentVersion);
+    if (update == null || !mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A202C),
+        title: const Text('Update Available', style: TextStyle(color: pureWhite)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('v${update['version']}', style: const TextStyle(color: pureYellow, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(update['notes'] as String, style: const TextStyle(color: pureWhite)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Later', style: TextStyle(color: tajiTextMutedDark)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              UpdateService.downloadAndInstall(update['url'] as String, context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: pureYellow, foregroundColor: pureBlack),
+            child: const Text('Update Now'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
