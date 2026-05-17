@@ -1,0 +1,59 @@
+name: taji_app
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.11.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  font_awesome_flutter: ^11.0.0
+  image_picker: ^1.1.2
+  shared_preferences: ^2.5.4
+  url_launcher: ^6.3.2
+  sqflite: ^2.4.2
+  path: ^1.9.1
+  path_provider: ^2.1.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+  sqflite_common_ffi: ^2.3.4
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/taji_logo.jpeg"
+  min_sdk_android: 21 # flutter_launcher_icons requires this to be at least 21
+
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/taji.jpeg
+    - assets/images/bg_layer.png
+    - assets/images/person_layer.png
+    - assets/images/google_logo.png
+    - assets/images/email_logo.png
+
+  fonts:
+    - family: Calibri
+      fonts:
+        - asset: assets/fonts/calibri.ttf
+        - asset: assets/fonts/calibrib.ttf
+          weight: 700
+        - asset: assets/fonts/calibrii.ttf
+          style: italic
+        - asset: assets/fonts/calibriz.ttf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/calibril.ttf
+          weight: 300
+        - asset: assets/fonts/calibrili.ttf
+          weight: 300
+          style: italic
