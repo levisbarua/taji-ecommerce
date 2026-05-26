@@ -169,7 +169,7 @@ class _AuthPageState extends State<AuthPage> {
                               onTap: _toggleMode,
                               child: Text(
                                 _isLogin ? "Create one now" : "Log in",
-                                style: const TextStyle(color: Color(0xFF22C55E), fontWeight: FontWeight.bold),
+                                style: const TextStyle(color: pureYellow, fontWeight: FontWeight.bold),
                               ),
                             ),
                           ),

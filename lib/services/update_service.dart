@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:android_intent_plus/android_intent.dart';
@@ -11,15 +12,16 @@ class UpdateService {
 
   static Future<Map<String, dynamic>?> checkForUpdate(String currentVersion) async {
     try {
-      final client = HttpClient();
-      client.userAgent = 'TajiApp/1.0';
-      final request = await client.getUrl(Uri.parse(_apiUrl));
-      final response = await request.close().timeout(const Duration(seconds: 10));
+      final response = await http
+          .get(
+            Uri.parse(_apiUrl),
+            headers: {'User-Agent': 'TajiApp/1.0', 'Accept': 'application/vnd.github.v3+json'},
+          )
+          .timeout(const Duration(seconds: 15));
 
       if (response.statusCode != 200) return null;
 
-      final body = await response.transform(utf8.decoder).join();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
 
       final tagName = data['tag_name'] as String? ?? '';
       final version = tagName.replaceAll(RegExp(r'^v'), '');
@@ -56,9 +58,6 @@ class UpdateService {
     return partsA.length - partsB.length;
   }
 
-  /// Downloads APK and triggers installation on device.
-  /// Uses FileProvider + android_intent_plus for direct install (seamless).
-  /// Falls back to browser download if direct install fails.
   static Future<void> downloadAndInstall(String url, BuildContext context) async {
     try {
       final dir = await getTemporaryDirectory();
@@ -97,13 +96,11 @@ class UpdateService {
         );
       }
 
-      // Try direct install via FileProvider + Android Intent
       if (Platform.isAndroid) {
         final installed = await _installApk(file);
         if (installed) return;
       }
 
-      // Fallback: open download URL in browser
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Opening download in browser...')),
@@ -119,15 +116,13 @@ class UpdateService {
     }
   }
 
-  /// Installs APK using FileProvider content URI and Android Intent.
-  /// Returns true if the install intent was launched successfully.
   static Future<bool> _installApk(File file) async {
     try {
       final authority = 'com.example.taji_app.fileprovider';
       final contentUri = 'content://$authority/apk_downloads/${file.uri.pathSegments.last}';
 
-      const grantRead = 0x00000001; // FLAG_GRANT_READ_URI_PERMISSION
-      const newTask = 0x10000000; // FLAG_ACTIVITY_NEW_TASK
+      const grantRead = 0x00000001;
+      const newTask = 0x10000000;
       final intent = AndroidIntent(
         action: 'android.intent.action.VIEW',
         data: contentUri,
