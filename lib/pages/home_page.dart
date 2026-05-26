@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../utils/constants.dart';
+import '../services/update_service.dart';
 import 'auth_page.dart';
 import 'swipe_button.dart';
 
@@ -22,6 +24,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   
   final String _fullTitle = 'TAJI THE CREATOR';
 
+  Map<String, dynamic>? _updateInfo;
+
   @override
   void initState() {
     super.initState();
@@ -30,6 +34,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(seconds: 4),
     )..repeat();
+
+    _readVersionAndCheck();
 
     _shineOffset = Tween<double>(begin: -2.0, end: 2.0).animate(
       CurvedAnimation(parent: _shineController, curve: Curves.easeInOut),
@@ -59,6 +65,84 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     )..repeat();
   }
 
+  Future<void> _readVersionAndCheck() async {
+    String version = '0.1.0';
+    try {
+      final info = await PackageInfo.fromPlatform();
+      version = info.version;
+    } catch (_) {}
+    _checkForUpdate(version);
+  }
+
+  Future<void> _checkForUpdate(String currentVersion) async {
+    final update = await UpdateService.checkForUpdate(currentVersion);
+    if (!mounted) return;
+    setState(() {
+      _updateInfo = update;
+    });
+    if (update != null) {
+      _showUpdateDialog(update);
+    }
+  }
+
+  void _showUpdateDialog(Map<String, dynamic> update) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A202C),
+        title: Row(
+          children: [
+            const Icon(Icons.system_update, color: pureYellow, size: 24),
+            const SizedBox(width: 8),
+            const Text('Update Available', style: TextStyle(color: pureWhite)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Text('Version ', style: TextStyle(color: tajiTextMutedDark)),
+                Text('v${update['version']}', style: const TextStyle(color: pureYellow, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(update['notes'] as String, style: const TextStyle(color: pureWhite, fontSize: 13)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Later', style: TextStyle(color: tajiTextMutedDark)),
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.download, size: 18),
+            label: const Text('Update Now'),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _downloadUpdate(update['url'] as String);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: pureYellow, foregroundColor: pureBlack),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _downloadUpdate(String url) async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Row(children: [CircularProgressIndicator(strokeWidth: 2, color: pureYellow), SizedBox(width: 16), Text('Downloading update...')]),
+        duration: Duration(minutes: 2),
+        backgroundColor: Color(0xFF1A202C),
+      ),
+    );
+    await UpdateService.downloadAndInstall(url, context);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+  }
+
   @override
   void dispose() {
     _shineController.dispose();
@@ -76,7 +160,34 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 30),
-            
+
+            if (_updateInfo != null)
+              GestureDetector(
+                onTap: () => _showUpdateDialog(_updateInfo!),
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: pureYellow.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: pureYellow.withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.system_update, color: pureYellow, size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Update v${_updateInfo!['version']} available',
+                          style: const TextStyle(color: pureWhite, fontWeight: FontWeight.w600, fontSize: 14),
+                        ),
+                      ),
+                      const Icon(Icons.arrow_forward_ios, color: pureYellow, size: 14),
+                    ],
+                  ),
+                ),
+              ),
+
             Center(
               child: AnimatedBuilder(
                 animation: Listenable.merge([_shineController, _glowController, _floatController]),

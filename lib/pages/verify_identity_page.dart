@@ -37,7 +37,10 @@ class _VerifyIdentityPageState extends State<VerifyIdentityPage> {
     await Future.delayed(const Duration(seconds: 2));
     if (mounted) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("ID Verification submitted..."), backgroundColor: pureYellow));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text("Identity verification is not yet available. Your data was not saved server-side."),
+        backgroundColor: tajiAmber,
+      ));
       Navigator.pop(context);
     }
   }

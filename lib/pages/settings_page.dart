@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../utils/constants.dart';
 import '../services/managers.dart';
 import '../services/update_service.dart';
 import '../services/user_session.dart';
+import '../services/supabase_service.dart';
 import 'personal_details_page.dart';
 import 'phone_numbers_page.dart';
 import 'change_email_page.dart';
@@ -24,8 +26,8 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   String selectedLanguage = "English";
-  String _phone = "0715773232";
-  String _email = "barualevis@gmail.com";
+  String _phone = "";
+  String _email = "";
   bool _checkingUpdate = false;
 
   @override
@@ -37,8 +39,8 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _loadSettingsData() async {
     final data = await ProfileManager.getProfileData();
     setState(() {
-      _phone = data['phone'] ?? "0715773232";
-      _email = data['email'] ?? "barualevis@gmail.com";
+      _phone = data['phone'] ?? "";
+      _email = data['email'] ?? "";
     });
   }
 
@@ -315,7 +317,11 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _checkForUpdateManually() async {
     setState(() => _checkingUpdate = true);
-    const currentVersion = '0.1.0';
+    String currentVersion = '0.1.0';
+    try {
+      final info = await PackageInfo.fromPlatform();
+      currentVersion = info.version;
+    } catch (_) {}
     final update = await UpdateService.checkForUpdate(currentVersion);
     if (!mounted) return;
     setState(() => _checkingUpdate = false);
@@ -409,6 +415,7 @@ class _SettingsPageState extends State<SettingsPage> {
               child: ElevatedButton(
                 onPressed: () async {
                   HapticFeedback.mediumImpact();
+                  await SupabaseService.signOut();
                   await UserSession.clearSession();
                   if (!context.mounted) return;
                   Navigator.of(context).pushAndRemoveUntil(

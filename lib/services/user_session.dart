@@ -1,43 +1,47 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class UserSession {
+  static const _storage = FlutterSecureStorage();
   static const String _keyEmail = 'user_email';
   static const String _keyUserId = 'user_id';
 
-  // Load email from SharedPreferences cache
   static Future<String?> getEmail() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_keyEmail);
+    try { return await _storage.read(key: _keyEmail); } catch (_) { return null; }
   }
 
-  // Load user ID from SharedPreferences cache
   static Future<String?> getUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_keyUserId);
+    try { return await _storage.read(key: _keyUserId); } catch (_) { return null; }
   }
 
-  // Save auth data to local cache
   static Future<void> saveSession(String email, String userId) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyEmail, email);
-    await prefs.setString(_keyUserId, userId);
+    await _storage.write(key: _keyEmail, value: email);
+    await _storage.write(key: _keyUserId, value: userId);
   }
 
-  // Clear local session
   static Future<void> clearSession() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_keyEmail);
-    await prefs.remove(_keyUserId);
+    await _storage.delete(key: _keyEmail);
+    await _storage.delete(key: _keyUserId);
   }
 
-  // Check if user has a valid Supabase session
   static bool hasSupabaseSession() {
     return Supabase.instance.client.auth.currentSession != null;
   }
 
-  // Get current Supabase user
   static User? get currentSupabaseUser => Supabase.instance.client.auth.currentUser;
 
-  static bool isAdmin(String? email) => email == 'barualevis@gmail.com';
+  /// Check admin via server-side role, not hardcoded email
+  static Future<bool> isAdminAsync(String? userId) async {
+    if (userId == null) return false;
+    try {
+      final profile = await Supabase.instance.client
+          .from('profiles')
+          .select('role')
+          .eq('id', userId)
+          .maybeSingle();
+      return profile?['role'] == 'admin';
+    } catch (_) {
+      return false;
+    }
+  }
 }

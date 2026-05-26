@@ -12,12 +12,12 @@ class PersonalDetailsPage extends StatefulWidget {
 }
 
 class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
-  final TextEditingController _firstNameController = TextEditingController(text: "Levis");
-  final TextEditingController _lastNameController = TextEditingController(text: "Barua");
+  final TextEditingController _firstNameController = TextEditingController(text: "");
+  final TextEditingController _lastNameController = TextEditingController(text: "");
   
-  String _location = "Nairobi City, Kenya";
-  String _birthday = "Jan 12, 2000";
-  String _sex = "Male";
+  String _location = "";
+  String _birthday = "";
+  String _sex = "";
   bool _isGoogleConnected = true;
   bool _isFacebookConnected = false;
   

@@ -137,30 +137,30 @@ class ProfileManager {
         final remote = await SupabaseService.getProfile(_userId!);
         if (remote != null) {
           return {
-            'name': remote['name']?.toString() ?? 'Sarah Jenkins',
-            'firstName': remote['first_name']?.toString() ?? 'Levis',
-            'lastName': remote['last_name']?.toString() ?? 'Barua',
-            'email': remote['email']?.toString() ?? 'barualevis@gmail.com',
-            'phone': remote['phone']?.toString() ?? '0715773232',
+            'name': remote['name']?.toString() ?? '',
+            'firstName': remote['first_name']?.toString() ?? '',
+            'lastName': remote['last_name']?.toString() ?? '',
+            'email': remote['email']?.toString() ?? '',
+            'phone': remote['phone']?.toString() ?? '',
             'image': remote['avatar_url']?.toString() ?? '',
-            'location': remote['location']?.toString() ?? 'Nairobi City, Kenya',
-            'birthday': remote['birthday']?.toString() ?? 'Jan 12, 2000',
-            'sex': remote['sex']?.toString() ?? 'Male',
+            'location': remote['location']?.toString() ?? '',
+            'birthday': remote['birthday']?.toString() ?? '',
+            'sex': remote['sex']?.toString() ?? '',
           };
         }
       } catch (_) {}
     }
     final data = await DatabaseService.getAllProfileData();
     return {
-      'name': data['name'] ?? 'Sarah Jenkins',
-      'firstName': data['firstName'] ?? 'Levis',
-      'lastName': data['lastName'] ?? 'Barua',
-      'email': data['email'] ?? 'barualevis@gmail.com',
-      'phone': data['phone'] ?? '0715773232',
+      'name': data['name'] ?? '',
+      'firstName': data['firstName'] ?? '',
+      'lastName': data['lastName'] ?? '',
+      'email': data['email'] ?? '',
+      'phone': data['phone'] ?? '',
       'image': data['image'] ?? '',
-      'location': data['location'] ?? 'Nairobi City, Kenya',
-      'birthday': data['birthday'] ?? 'Jan 12, 2000',
-      'sex': data['sex'] ?? 'Male',
+      'location': data['location'] ?? '',
+      'birthday': data['birthday'] ?? '',
+      'sex': data['sex'] ?? '',
     };
   }
 

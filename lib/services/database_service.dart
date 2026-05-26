@@ -180,15 +180,15 @@ class DatabaseService {
     }
 
     final defaultProfile = {
-      'name': 'Sarah Jenkins',
-      'firstName': 'Levis',
-      'lastName': 'Barua',
-      'email': 'barualevis@gmail.com',
-      'phone': '0715773232',
+      'name': '',
+      'firstName': '',
+      'lastName': '',
+      'email': '',
+      'phone': '',
       'image': '',
-      'location': 'Nairobi City, Kenya',
-      'birthday': 'Jan 12, 2000',
-      'sex': 'Male',
+      'location': '',
+      'birthday': '',
+      'sex': '',
     };
     for (final entry in defaultProfile.entries) {
       await db.insert('profile_data', {'key': entry.key, 'value': entry.value});

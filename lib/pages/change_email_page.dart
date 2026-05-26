@@ -12,7 +12,7 @@ class ChangeEmailPage extends StatefulWidget {
 }
 
 class _ChangeEmailPageState extends State<ChangeEmailPage> {
-  String _email = "barualevis@gmail.com";
+  String _email = "";
 
   @override
   void initState() {
@@ -23,7 +23,7 @@ class _ChangeEmailPageState extends State<ChangeEmailPage> {
   Future<void> _loadEmail() async {
     final data = await ProfileManager.getProfileData();
     setState(() {
-      _email = data['email'] ?? "barualevis@gmail.com";
+      _email = data['email'] ?? "";
     });
   }
 

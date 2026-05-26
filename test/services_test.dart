@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taji_app/services/update_service.dart';
-import 'package:taji_app/services/user_session.dart';
 
 void main() {
   group('UpdateService', () {
@@ -28,23 +27,10 @@ void main() {
       final result = UpdateService.compareVersions('0.1.0', '0.1.1');
       expect(result, lessThan(0));
     });
-  });
 
-  group('UserSession', () {
-    test('isAdmin returns true for admin email', () {
-      expect(UserSession.isAdmin('barualevis@gmail.com'), isTrue);
-    });
-
-    test('isAdmin returns false for other emails', () {
-      expect(UserSession.isAdmin('user@example.com'), isFalse);
-    });
-
-    test('isAdmin returns false for null', () {
-      expect(UserSession.isAdmin(null), isFalse);
-    });
-
-    test('isAdmin returns false for empty string', () {
-      expect(UserSession.isAdmin(''), isFalse);
+    test('version comparison: single vs three parts', () {
+      final result = UpdateService.compareVersions('5', '0.1.0');
+      expect(result, greaterThan(0));
     });
   });
 }

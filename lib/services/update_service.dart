@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:android_intent_plus/android_intent.dart';
 
 class UpdateService {
   static const String _repo = 'levisbarua/taji-ecommerce';
@@ -55,12 +56,21 @@ class UpdateService {
     return partsA.length - partsB.length;
   }
 
+  /// Downloads APK and triggers installation on device.
+  /// Uses FileProvider + android_intent_plus for direct install (seamless).
+  /// Falls back to browser download if direct install fails.
   static Future<void> downloadAndInstall(String url, BuildContext context) async {
     try {
       final dir = await getTemporaryDirectory();
       final file = File('${dir.path}/taji_update.apk');
 
       if (file.existsSync()) await file.delete();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Downloading update...'), duration: Duration(minutes: 5)),
+        );
+      }
 
       final client = HttpClient();
       client.userAgent = 'TajiApp/1.0';
@@ -69,9 +79,8 @@ class UpdateService {
 
       if (response.statusCode != 200) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Download failed')),
-          );
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Download failed')));
         }
         return;
       }
@@ -82,27 +91,53 @@ class UpdateService {
       await sink.close();
 
       if (context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Download complete, installing...')),
+          const SnackBar(content: Text('Download complete'), duration: Duration(seconds: 2)),
         );
       }
 
-      final uri = Uri.file(file.path);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
-      } else if (Platform.isAndroid) {
-        await Process.run('am', [
-          'start',
-          '-t', 'application/vnd.android.package-archive',
-          '-d', 'file://${file.path}',
-        ]);
+      // Try direct install via FileProvider + Android Intent
+      if (Platform.isAndroid) {
+        final installed = await _installApk(file);
+        if (installed) return;
       }
+
+      // Fallback: open download URL in browser
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Opening download in browser...')),
+        );
+      }
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Update failed: $e')),
         );
       }
+    }
+  }
+
+  /// Installs APK using FileProvider content URI and Android Intent.
+  /// Returns true if the install intent was launched successfully.
+  static Future<bool> _installApk(File file) async {
+    try {
+      final authority = 'com.example.taji_app.fileprovider';
+      final contentUri = 'content://$authority/apk_downloads/${file.uri.pathSegments.last}';
+
+      const grantRead = 0x00000001; // FLAG_GRANT_READ_URI_PERMISSION
+      const newTask = 0x10000000; // FLAG_ACTIVITY_NEW_TASK
+      final intent = AndroidIntent(
+        action: 'android.intent.action.VIEW',
+        data: contentUri,
+        type: 'application/vnd.android.package-archive',
+        flags: [grantRead, newTask],
+      );
+      await intent.launch();
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 }

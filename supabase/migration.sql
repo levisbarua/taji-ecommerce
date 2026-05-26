@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   location TEXT DEFAULT '',
   birthday TEXT DEFAULT '',
   sex TEXT DEFAULT '',
+  role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin')),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -46,7 +47,7 @@ CREATE POLICY "Anyone can view categories"
 
 CREATE POLICY "Admins can manage categories"
   ON categories FOR ALL
-  USING (auth.uid() IN (SELECT id FROM profiles WHERE email = 'barualevis@gmail.com'));
+  USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'));
 
 -- Products
 CREATE TABLE IF NOT EXISTS products (
@@ -68,7 +69,7 @@ CREATE POLICY "Anyone can view products"
 
 CREATE POLICY "Admins can manage products"
   ON products FOR ALL
-  USING (auth.uid() IN (SELECT id FROM profiles WHERE email = 'barualevis@gmail.com'));
+  USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'));
 
 -- Orders
 CREATE TABLE IF NOT EXISTS orders (
@@ -172,7 +173,7 @@ CREATE POLICY "Anyone can insert requests"
 
 CREATE POLICY "Admins can view requests"
   ON requests FOR SELECT
-  USING (auth.uid() IN (SELECT id FROM profiles WHERE email = 'barualevis@gmail.com'));
+  USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'));
 
 -- Seed default categories
 INSERT INTO categories (name) VALUES

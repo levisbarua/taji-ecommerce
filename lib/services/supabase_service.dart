@@ -1,7 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 const String _supabaseUrl = 'https://jkcegzquyhekepznqeob.supabase.co';
-const String _supabaseAnonKey = 'sb_publishable_Vatw0B5bFEJrwl8bSUCyRg_GmghP-9b';
+const String _supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImprY2VnenF1eWhla2Vwem5xZW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTg4MDEsImV4cCI6MjA5NDU5NDgwMX0.g9lNb4UDAiBfa6l9HX0tuzwDN_vctO-e-PER5RaXe3A';
 
 class SupabaseService {
   static final SupabaseClient client = Supabase.instance.client;

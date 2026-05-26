@@ -7,6 +7,9 @@ import '../services/user_session.dart';
 import '../services/managers.dart';
 import 'shop_page.dart';
 
+final RegExp _emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+final RegExp _passwordRegex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$');
+
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
 
@@ -343,21 +346,29 @@ class _AuthPageState extends State<AuthPage> {
   Future<void> _handlePrimaryAuth() async {
     final email = _emailController.text.trim().toLowerCase();
     final password = _passwordController.text;
-    
+
     if (email.isEmpty) {
       _showErrorSnackBar('Please enter your email address');
       return;
     }
-    
+    if (!_emailRegex.hasMatch(email)) {
+      _showErrorSnackBar('Please enter a valid email address');
+      return;
+    }
+    if (password.isEmpty) {
+      _showErrorSnackBar('Please enter your password');
+      return;
+    }
+    if (!_passwordRegex.hasMatch(password)) {
+      _showErrorSnackBar('Password must be at least 8 characters with uppercase, lowercase, and a number');
+      return;
+    }
+
     if (!_isLogin) {
       final firstName = _firstNameController.text.trim();
       final lastName = _lastNameController.text.trim();
       final phone = _phoneController.text.trim();
 
-      if (password.length < 8) {
-        _showErrorSnackBar('Password must be at least 8 characters long');
-        return;
-      }
       if (firstName.isEmpty || lastName.isEmpty) {
         _showErrorSnackBar('Please enter your full name');
         return;
@@ -366,13 +377,8 @@ class _AuthPageState extends State<AuthPage> {
         _showErrorSnackBar('Please enter your phone number');
         return;
       }
-    } else {
-      if (password.isEmpty) {
-        _showErrorSnackBar('Please enter your password');
-        return;
-      }
     }
-    
+
     if (!context.mounted) return;
 
     try {
@@ -401,7 +407,7 @@ class _AuthPageState extends State<AuthPage> {
       }
     } catch (e) {
       if (context.mounted) {
-        _showErrorSnackBar(e.toString());
+        _showErrorSnackBar('Authentication failed. Please check your credentials and try again.');
       }
       return;
     }
@@ -409,13 +415,13 @@ class _AuthPageState extends State<AuthPage> {
     if (!context.mounted) return;
 
     final supabaseUser = UserSession.currentSupabaseUser;
-    if (supabaseUser != null && supabaseUser.email != null) {
+    if (supabaseUser != null && supabaseUser.email != null && supabaseUser.id.isNotEmpty) {
       await UserSession.saveSession(supabaseUser.email!, supabaseUser.id);
     } else {
-      await UserSession.saveSession(email, '');
+      return;
     }
 
-    final isAdmin = UserSession.isAdmin(email);
+    final isAdmin = await UserSession.isAdminAsync(supabaseUser.id);
 
     if (!context.mounted) return;
 
@@ -460,9 +466,9 @@ class _AuthPageState extends State<AuthPage> {
         MaterialPageRoute(builder: (context) => const ShopPage(isAdmin: false)),
         (route) => false,
       );
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
-        _showErrorSnackBar('$method failed: ${e.toString()}');
+        _showErrorSnackBar('Authentication failed. Please try again.');
       }
     }
   }
